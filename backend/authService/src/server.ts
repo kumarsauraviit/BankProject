@@ -1,14 +1,14 @@
-import express from 'express';
+import { app } from './app.js';
+import { env } from './config/env.js';
+import { testDbConnection } from './config/database.js';
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+async function start() {
+  // Test connection to Neon PostgreSQL
+  await testDbConnection();
 
-app.use(express.json());
+  app.listen(env.port, () => {
+    console.log(`🚀 Auth service running on port ${env.port}`);
+  });
+}
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'authService' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Auth service running on port ${PORT}`);
-});
+start();
