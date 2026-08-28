@@ -1,12 +1,20 @@
 import {
   CartModel,
   ProductModel,
+  PostModel,
+  CommentModel,
   type Cart,
   type CreateProductDTO,
+  type CreatePostDTO,
   type Product,
   type addToCartDTO,
+  type Post,
+  type Comment,
+  type CreateCommentDTO,
 } from '@project/mongodb';
 
+import v2 from '../config/cloudinary.js';
+import type { UploadApiResponse } from "cloudinary";
 type HttpError = Error & { statusCode?: number };
 
 function createHttpError(message: string, statusCode: number): HttpError {
@@ -101,22 +109,60 @@ export class ProductService {
 
     return cart;
   }
-async FindByName(name: string): Promise<Product[]> {
-  const words = name.trim().split(/\s+/);
+  async FindByName(name: string): Promise<Product[]> {
+    const words = name.trim().split(/\s+/);
 
-  const products = await ProductModel.find({
-    name: {
-      $regex: `^${words.map(word => `(?=.*${word})`).join('')}`,
-      $options: "i"
+    const products = await ProductModel.find({
+      name: {
+        $regex: `^${words.map(word => `(?=.*${word})`).join('')}`,
+        $options: "i"
+      }
+    }).exec();
+
+    if (products.length === 0) {
+      throw createHttpError("Product not found", 404);
     }
-  }).exec();
 
-  if (products.length === 0) {
-    throw createHttpError("Product not found", 404);
+    return products;
+  }
+  async PostImages(data: CreatePostDTO): Promise<Post> {
+    const post = await PostModel.create(data);
+    return post;
   }
 
-  return products;
-}
+  // this upload the file on the cloudinary and return the url of the file
+  async UploadOnCloudinary(
+    buffer: Buffer
+  ): Promise<UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = v2.uploader.upload_stream(
+        {
+          folder: "posts",
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          if (!result) {
+            reject(new Error("Cloudinary upload failed"));
+            return;
+          }
+
+          resolve(result);
+        }
+      );
+
+      uploadStream.end(buffer);
+    });
+  }
+  async addComment(data: CreateCommentDTO): Promise<Comment> {
+    const comment = await CommentModel.create(data);
+    return comment;
+  }
+
 }
 
 export const productService = new ProductService();

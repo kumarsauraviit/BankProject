@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { type addToCartDTO, type CreateProductDTO } from '@project/mongodb';
-import { ProductService, productService } from '../services/product.service.js';
+import { type addToCartDTO, type CreatePostDTO, type PostMedia, type CreateCommentDTO } from '@project/mongodb';
+import { productService } from '../services/product.service.js';
 
 const { Types } = mongoose;
 
@@ -113,35 +113,143 @@ export class ProductController {
       next(error);
     }
   }
-  async postReel(req: Request, res: Response, next: NextFunction): Promise<void> {
 
+  async postImages(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
-      
-    }
-    catch (error) {
+      const { id, caption } = req.body;
+
+      const files = req.files as Express.Multer.File[];
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          error: "Please provide user id",
+        });
+        return;
+      }
+
+      if (!Types.ObjectId.isValid(id)) {
+        res.status(400).json({
+          success: false,
+          error: "Please provide a valid user id",
+        });
+        return;
+      }
+
+      if (!files || files.length === 0) {
+        res.status(400).json({
+          success: false,
+          error: "Please provide at least one image",
+        });
+        return;
+      }
+
+      if (caption !== undefined && typeof caption !== "string") {
+        res.status(400).json({
+          success: false,
+          error: "Caption must be a string",
+        });
+        return;
+      }
+
+      const uploadedFiles: PostMedia[] = await Promise.all(
+        files.map(async (file) => {
+          const result =
+            await productService.UploadOnCloudinary(file.buffer);
+
+          return {
+            publicId: result.public_id,
+            url: result.secure_url,
+            width: result.width,
+            height: result.height,
+          };
+        })
+      );
+
+      const postData: CreatePostDTO = {
+        userId: id,
+        caption,
+        media: uploadedFiles,
+      };
+
+      const post = await productService.PostImages(postData);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          post,
+        },
+      });
+    } catch (error) {
       next(error);
     }
   }
 
-  async findProduct(req:Request,res:Response,next:NextFunction):Promise<void>{
-    try{
-       const {name} = req.body;
-       if(!isRecord(name)){
+
+  async findProduct(req: Request<{ postId: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name } = req.body;
+      if (!isRecord(name)) {
         res.status(400).json({
-          success:false,
-          error:'Invalid product data'
+          success: false,
+          error: 'Invalid product data'
         })
         return;
-       }
-       const product = await productService.FindByName(name.toString().trim().toLocaleLowerCase());
-       res.status(200).json({
+      }
+      const product = await productService.FindByName(name.toString().trim().toLocaleLowerCase());
+      res.status(200).json({
         success: true,
         data: { product },
-       })
+      })
 
     }
-    catch(error){
+    catch (error) {
       next(error)
+    }
+  }
+
+  async comment(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+
+    try {
+      const { userId, comment } = req.body;
+      if (comment.length() == 0) {
+        res.status(400).json({
+          success: false,
+          error: "Comment is required",
+        })
+        return;
+      }
+      const postId = Array.isArray(req.query.productId)
+        ? req.query.productId[0]
+        : req.query.productId;
+      if (typeof postId !== 'string' || !Types.ObjectId.isValid(postId)) {
+        res.status(400).json({
+          success: false,
+          error: 'Valid Product ID is required',
+        });
+        return;
+      }
+
+      const Comment: CreateCommentDTO = {
+        postId: new Types.ObjectId(postId),
+        userId: new Types.ObjectId(userId),
+        text: comment,
+      }
+      const post = await productService.addComment(Comment);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          post,
+        },
+      });
+    } catch (error) {
+      next(error);
     }
   }
 }
