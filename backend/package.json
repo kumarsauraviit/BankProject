@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": ["services/*", "packages/*"],
   "scripts": {
-    "build": "npm run build --workspace @project/postgres && npm run build --workspace @project/mongodb && npm run build --workspace @project/shared-types && npm run build --workspace @project/utils && npm run build --workspace @project/auth-service && npm run build --workspace @project/product-service && npm run build --workspace @project/order-service",
+    "build": "npm run build --workspace @project/postgres && npm run build --workspace @project/mongodb && npm run build --workspace @project/shared-types && npm run build --workspace @project/auth-service && npm run build --workspace @project/product-service",
     "dev:auth": "npm run dev --workspace @project/auth-service",
     "dev:product": "npm run dev --workspace @project/product-service",
     "dev:order": "npm run dev --workspace @project/order-service",

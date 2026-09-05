@@ -18,8 +18,8 @@ export interface CreatePostDTO {
 }
 
 export interface Post {
-  _id: Types.ObjectId;
-  userId: number;
+  _id?: Types.ObjectId;
+  userId: string;
 
   caption?: string;
 
@@ -67,13 +67,8 @@ const postMediaSchema = new Schema<PostMedia>(
 
 export const postSchema = new Schema<Post>(
   {
-    _id: {
-      type: Types.ObjectId,
-      required: true,
-      index: true,
-    },
     userId: {
-      type: Number,
+      type: String,
       required: true,
       index: true,
     },

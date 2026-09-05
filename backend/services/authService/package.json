@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@project/postgres": "file:../../packages/postgres",
+    "@project/shared-types": "file:../../packages/shared-types",
     "@types/nodemailer": "^8.0.1",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.2.0",

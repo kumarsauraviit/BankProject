@@ -5,7 +5,17 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "scripts": { "build": "tsc" },
-  "devDependencies": { "typescript": "5.9" }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "5.9",
+    "@project/shared-types": "file:../../packages/shared-types"
+  }
 }

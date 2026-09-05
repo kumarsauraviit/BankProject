@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { productController } from '../controllers/product.controller.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+// import { authMiddleware } from '../middleware/auth.middleware.js';
+import { authMiddleware } from '@project/shared-types';
+
 import { uploadPostImages } from '../middleware/upload.middleware.js';
 
 const router = Router();
